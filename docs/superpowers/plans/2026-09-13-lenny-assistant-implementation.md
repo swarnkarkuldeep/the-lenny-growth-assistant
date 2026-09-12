@@ -1088,7 +1088,7 @@ git commit -m "feat: implement semantic search retrieval service"
 
 **Task Steps:**
 
-- [ ] **Step 1: Create prompts.py with system prompts**
+- [x] **Step 1: Create prompts.py with system prompts**
 
 Write `src/prompts.py`:
 ```python
@@ -1158,7 +1158,7 @@ def format_conversation(messages) -> str:
     return "\n".join(history)
 ```
 
-- [ ] **Step 2: Implement llm.py with provider abstraction**
+- [x] **Step 2: Implement llm.py with provider abstraction**
 
 Write `src/services/llm.py`:
 ```python
@@ -1303,7 +1303,7 @@ def get_llm_provider(provider: str) -> LLMProvider:
         raise ValueError(f"Unknown provider: {provider}")
 ```
 
-- [ ] **Step 3: Test Claude provider (if API key configured)**
+- [x] **Step 3: Test Claude provider (if API key configured)**
 
 Write `tests/test_llm_claude.py`:
 ```python
@@ -1332,7 +1332,7 @@ def test_claude_qa_response():
     db.close()
 ```
 
-- [ ] **Step 4: Test Ollama provider**
+- [x] **Step 4: Test Ollama provider**
 
 Write `tests/test_llm_ollama.py`:
 ```python
@@ -1362,7 +1362,7 @@ Run: `pytest tests/test_llm_ollama.py -v` (local test, should work)
 
 Expected: Response generated, test passes
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/services/llm.py src/prompts.py tests/test_llm_*.py
