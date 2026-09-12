@@ -1,3 +1,4 @@
+-- Enable pgvector extension
 CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE sessions (
@@ -31,7 +32,7 @@ CREATE TABLE transcript_chunks (
 CREATE TABLE chunk_embeddings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     chunk_id UUID NOT NULL REFERENCES transcript_chunks(id) ON DELETE CASCADE,
-    embedding TEXT,
+    embedding vector(384),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     UNIQUE(chunk_id)
 );
@@ -49,3 +50,4 @@ CREATE TABLE artifacts (
 CREATE INDEX idx_messages_session ON messages(session_id);
 CREATE INDEX idx_artifacts_session ON artifacts(session_id);
 CREATE INDEX idx_transcript_chunks_guest ON transcript_chunks(guest_name);
+CREATE INDEX idx_chunk_embeddings_vector ON chunk_embeddings USING ivfflat (embedding vector_cosine_ops);

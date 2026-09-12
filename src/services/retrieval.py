@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class RetrievalService:
-    """Semantic search over transcript chunks."""
+    """Semantic search over transcript chunks using pgvector."""
 
     def __init__(self, db: Session):
         self.db = db
@@ -33,14 +33,20 @@ class RetrievalService:
 
     def retrieve(self, query: str, top_k: int = None) -> List[RetrievedChunk]:
         """
-        Retrieve top-k most similar chunks using keyword matching.
-        (In production, use pgvector extension for semantic search)
+        Retrieve top-k most similar chunks using pgvector semantic search.
+        Returns chunks ordered by cosine similarity.
         """
         if top_k is None:
             top_k = settings.RETRIEVAL_TOP_K
 
         try:
-            # Use keyword matching - matches query in content or title
+            # Get query embedding
+            embedding = self.embed_query(query)
+
+            # Convert embedding to pgvector format
+            embedding_str = '[' + ','.join(str(x) for x in embedding) + ']'
+
+            # Semantic similarity search using pgvector cosine distance operator (<=>)
             results = self.db.execute(
                 text("""
                     SELECT
@@ -50,15 +56,17 @@ class RetrievalService:
                         tc.speaker_name,
                         tc.timestamp,
                         tc.content,
-                        tc.video_url
-                    FROM transcript_chunks tc
-                    WHERE LOWER(tc.content) LIKE LOWER(:query)
-                        OR LOWER(tc.episode_title) LIKE LOWER(:query)
-                    ORDER BY tc.created_at DESC
+                        tc.video_url,
+                        1 - (ce.embedding <=> :embedding::vector) as similarity
+                    FROM chunk_embeddings ce
+                    JOIN transcript_chunks tc ON ce.chunk_id = tc.id
+                    WHERE 1 - (ce.embedding <=> :embedding::vector) > :threshold
+                    ORDER BY similarity DESC
                     LIMIT :top_k
                 """),
                 {
-                    "query": f"%{query}%",
+                    "embedding": embedding_str,
+                    "threshold": settings.SIMILARITY_THRESHOLD,
                     "top_k": top_k
                 }
             ).fetchall()
@@ -73,7 +81,7 @@ class RetrievalService:
                     timestamp=row[4],
                     content=row[5],
                     video_url=row[6],
-                    similarity_score=0.85
+                    similarity_score=float(row[7])
                 )
                 chunks.append(chunk)
 

@@ -1,14 +1,21 @@
 version: '3.8'
 
+# =============================================================================
+# CONNECTION STRATEGY:
+# - Docker containers communicate via internal service names (postgres, ollama)
+# - Host machine (pytest, local scripts) connects via localhost:<mapped-port>
+# =============================================================================
+
 services:
   postgres:
-    image: postgres:15
+    image: pgvector/pgvector:pg15
     environment:
       POSTGRES_DB: lenny_assistant
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
       POSTGRES_USER: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./src/db/migrations:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
     healthcheck:
