@@ -57,6 +57,7 @@ services:
     volumes:
       - ./src:/app/src
       - ./scripts:/app/scripts
+      - ./tests:/app/tests
       - ./lennys-podcast-transcripts:/app/lennys-podcast-transcripts
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
