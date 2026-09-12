@@ -32,7 +32,7 @@ CREATE TABLE transcript_chunks (
 CREATE TABLE chunk_embeddings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     chunk_id UUID NOT NULL REFERENCES transcript_chunks(id) ON DELETE CASCADE,
-    embedding vector(384),
+    embedding vector(768),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     UNIQUE(chunk_id)
 );

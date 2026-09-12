@@ -8,7 +8,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: pgvector/pgvector:pg15
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_DB: lenny_assistant
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
@@ -56,6 +56,8 @@ services:
       - "8000:8000"
     volumes:
       - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./lennys-podcast-transcripts:/app/lennys-podcast-transcripts
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
   # frontend:  # TODO: Uncomment after Phase 6 (React frontend implementation)

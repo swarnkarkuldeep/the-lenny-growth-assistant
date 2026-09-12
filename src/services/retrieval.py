@@ -47,8 +47,7 @@ class RetrievalService:
             embedding_str = '[' + ','.join(str(x) for x in embedding) + ']'
 
             # Semantic similarity search using pgvector cosine distance operator (<=>)
-            results = self.db.execute(
-                text("""
+            sql = f"""
                     SELECT
                         tc.id,
                         tc.episode_title,
@@ -57,15 +56,16 @@ class RetrievalService:
                         tc.timestamp,
                         tc.content,
                         tc.video_url,
-                        1 - (ce.embedding <=> :embedding::vector) as similarity
+                        1 - (ce.embedding <=> '{embedding_str}'::vector) as similarity
                     FROM chunk_embeddings ce
                     JOIN transcript_chunks tc ON ce.chunk_id = tc.id
-                    WHERE 1 - (ce.embedding <=> :embedding::vector) > :threshold
+                    WHERE 1 - (ce.embedding <=> '{embedding_str}'::vector) > :threshold
                     ORDER BY similarity DESC
                     LIMIT :top_k
-                """),
+                """
+            results = self.db.execute(
+                text(sql),
                 {
-                    "embedding": embedding_str,
                     "threshold": settings.SIMILARITY_THRESHOLD,
                     "top_k": top_k
                 }
