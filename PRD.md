@@ -65,7 +65,7 @@ A conversational AI system grounded in Lenny's Podcast transcripts that:
 **Definition:** Wall-clock time from user submission to receipt of a complete, usable response.
 
 **Targets (split by provider):**
-- **Cloud (Claude API):** <15 seconds for Q&A answer, <2 minutes for essay generation
+- **Cloud (Google Gemini API):** <15 seconds for Q&A answer, <2 minutes for essay generation
 - **Local (Ollama + llama3.2:3b):** <30 seconds for Q&A answer, <3 minutes for essay generation
 
 **Enforcement:** Benchmarked and reported honestly in README, even if targets are not met.
@@ -89,14 +89,14 @@ A conversational AI system grounded in Lenny's Podcast transcripts that:
 - Ingestion loads all 400+ episodes from the Lenny's Podcast transcript repo, chunks them, embeds them using Ollama + nomic-embed-text, and writes to Postgres
 - Embeddings are always computed locally via Ollama; no third-party embedding APIs (no OpenAI Embeddings, Cohere, etc.)
 - Knowledge base is static for v1; to refresh with newer episodes, re-run the ingestion script manually
-- **Rationale:** Keeps the local pipeline fully self-contained. One API key (Claude, if using cloud generation) instead of two. Decouples ingestion iteration from app development.
+- **Rationale:** Keeps the local pipeline fully self-contained. One API key (Gemini, if using cloud generation) instead of two. Decouples ingestion iteration from app development.
 
 ### Assumption 3: Strict Provider Mode, Per-Message Selection
 
-- Two generation modes available: "Cloud (Claude)" or "Local (Ollama)"
-- **User selects a generation provider via a dropdown alongside the chat input** (e.g., a small selector showing "Cloud (Claude)" or "Local (Ollama)"); the selection persists as the default until manually changed
+- Two generation modes available: "Cloud (Gemini)" or "Local (Ollama)"
+- **User selects a generation provider via a dropdown alongside the chat input** (e.g., a small selector showing "Cloud (Gemini)" or "Local (Ollama)"); the selection persists as the default until manually changed
 - **Each message can use a different provider** — user can send one message with Cloud, then switch the dropdown and send the next with Local; no session-level lock
-- If the selected provider fails (bad API key, rate limit, Ollama unreachable, etc.), the request fails with a **clear, provider-specific error message** (e.g., "Claude API rate limited" vs. "Ollama unreachable at localhost:11434")
+- If the selected provider fails (bad API key, rate limit, Ollama unreachable, etc.), the request fails with a **clear, provider-specific error message** (e.g., "Gemini API rate limited" vs. "Ollama unreachable at localhost:11434")
 - User can switch providers and resubmit if they want to retry with a different LLM; no silent fallback
 - **Retrieval and embeddings always use Ollama (nomic-embed-text), regardless of the selected generation provider**
 - **Rationale:** Per-message selection enables side-by-side cloud/local comparison in a single session (supports demo requirement); strict mode makes failures transparent and diagnostically clear.
@@ -130,7 +130,7 @@ A conversational AI system grounded in Lenny's Podcast transcripts that:
 ✅ **FastAPI backend** with `/chat` (submit message), `/sessions` (list/manage sessions), `/health` endpoints  
 ✅ **PostgreSQL persistence** of sessions, messages, and metadata (using Supabase or self-hosted)  
 ✅ **RAG system** using Ollama embeddings (nomic-embed-text) for semantic search over transcript chunks  
-✅ **Generation provider toggle** (Cloud: Claude API OR Local: Ollama llama3.2:3b), strict mode, provider-specific error messages  
+✅ **Generation provider toggle** (Cloud: Google Gemini API OR Local: Ollama llama3.2:3b), strict mode, provider-specific error messages  
 ✅ **Grounded conversational assistant** that answers questions from Lenny's transcripts, cites sources, and explicitly declines out-of-scope questions  
 ✅ **Ship 30 for 30 content generation skill** — converts grounded research into ~1,250-word essays with hook, narrative, formatting, and takeaway  
 ✅ **Artifact generation and in-app viewer** — renders Markdown and sanitized HTML natively in the UI (no external redirects, no raw code display)  
@@ -229,7 +229,7 @@ A conversational AI system grounded in Lenny's Podcast transcripts that:
 - ✅ Automated test includes injection attempts; all are safely sanitized
 
 ### AC4: Provider Selection
-- ✅ User can select "Cloud (Claude)" or "Local (Ollama)" via a dropdown selector alongside the chat input
+- ✅ User can select "Cloud (Gemini)" or "Local (Ollama)" via a dropdown selector alongside the chat input
 - ✅ Selection persists as the default until manually changed
 - ✅ User can change the provider and resubmit the same question without creating a new session (enables side-by-side cloud/local comparison)
 - ✅ If provider fails, error message clearly identifies the failure (not silent fallback)
@@ -277,6 +277,16 @@ A conversational AI system grounded in Lenny's Podcast transcripts that:
   - HTML: sanitize with DOMPurify **first**, then render via `dangerouslySetInnerHTML` (this is the safe pattern)
 - **Testing:** Automated test suite includes injection attempts (script tags, event handlers, iframes) and verifies they are stripped
 - **Documentation:** architecture.md includes a dedicated section: "Artifact Viewer Security Model — What We Permit, Block, and Why"
+
+### Risk 3: Cloud LLM Quality & Latency (Gemini vs. Claude)
+
+**Failure Mode:** Google Gemini generates lower-quality responses than Claude, or API latency exceeds targets.
+
+**Mitigations:**
+- **Honest expectations:** README documents Gemini quality/latency targets separately from Claude (if we had used it)
+- **Retrieval focus:** Invest in retrieval quality (chunking, embedding) since it impacts all LLMs equally
+- **Side-by-side testing:** Demo includes same query answered by both Gemini and local model
+- **Transparent documentation:** If Gemini underperforms latency targets, report honestly in README
 
 ### Risk 3: Local Model Quality Ceiling (llama3.2:3b)
 

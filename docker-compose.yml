@@ -38,7 +38,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-password}@postgres:5432/lenny_assistant
       OLLAMA_BASE_URL: http://ollama:11434
-      CLAUDE_API_KEY: ${CLAUDE_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
       LOG_LEVEL: INFO
     depends_on:
       postgres:

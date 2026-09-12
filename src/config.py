@@ -6,7 +6,7 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/lenny_assistant"
     OLLAMA_BASE_URL: str = "http://localhost:11434"
-    CLAUDE_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
     RETRIEVAL_TOP_K: int = 5
     SIMILARITY_THRESHOLD: float = 0.5
     LOG_LEVEL: str = "INFO"

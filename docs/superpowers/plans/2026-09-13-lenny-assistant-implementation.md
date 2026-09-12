@@ -7,7 +7,7 @@
 **Architecture:** Modular FastAPI backend with pluggable LLM providers (Claude + Ollama), PostgreSQL persistence, semantic search via pgvector, React + Vite frontend with artifact viewer, strict XSS protection via DOMPurify.
 
 **Tech Stack:** 
-- Backend: FastAPI, SQLAlchemy, Pydantic, Anthropic SDK, Ollama client, psycopg2
+- Backend: FastAPI, SQLAlchemy, Pydantic, Google Generative AI SDK, Ollama client, psycopg2
 - Database: PostgreSQL 15 + pgvector, Supabase (or self-hosted)
 - Embeddings: Ollama + nomic-embed-text (384-dim vectors)
 - Frontend: React 18+, Vite, axios, react-markdown, DOMPurify
@@ -19,7 +19,7 @@
 
 - **Deadline:** 2026-09-15 EOD (2 days)
 - **No multi-user auth in v1** — single implicit user only
-- **Strict provider mode** — no fallback between Claude and Ollama
+- **Strict provider mode** — no fallback between Gemini and Ollama
 - **Source attribution ≥95%** — every response must cite sources or say "I don't have this"
 - **Artifact rendering:** DOMPurify whitelist (h1–h6, p, ul, ol, li, strong, em, a, blockquote, code, pre)
 - **Essay compliance 100%** — word count, headings, takeaway, citations, all claims traceable

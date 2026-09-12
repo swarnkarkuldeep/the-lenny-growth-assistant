@@ -63,7 +63,7 @@
 
 ### 1. **Empty State** (First Load)
 - Chat pane shows welcome message: "Ask a question about product, growth, or strategy. I'll ground my answer in Lenny's Podcast."
-- Provider selector visible: defaults to "Cloud (Claude)" with tooltip explaining the difference
+- Provider selector visible: defaults to "Cloud (Gemini)" with tooltip explaining the difference
 - Example questions displayed as clickable cards (e.g., "What makes a good pricing model?")
 - Artifact viewer pane shows: "No artifact yet."
 

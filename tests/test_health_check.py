@@ -44,12 +44,12 @@ class TestHealthEndpoint:
         assert "ollama" in data
         assert isinstance(data["ollama"], str)
 
-    def test_health_checks_claude_key(self, client):
-        """Test that health checks Claude API key configuration."""
+    def test_health_checks_gemini_key(self, client):
+        """Test that health checks Gemini API key configuration."""
         response = client.get("/health")
         data = response.json()
-        assert "claude_api_key" in data
-        assert data["claude_api_key"] in ["configured", "missing"]
+        assert "gemini_api_key" in data
+        assert data["gemini_api_key"] in ["configured", "missing"]
 
 
 class TestRootEndpoint:

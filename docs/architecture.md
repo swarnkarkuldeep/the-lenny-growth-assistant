@@ -67,7 +67,7 @@ class RetrievedChunk(BaseModel):
 **Purpose:** Unified interface for cloud and local LLM generation.
 
 **Providers:**
-- **Cloud:** Anthropic Claude API (claude-3-5-sonnet-20241022 or later)
+- **Cloud:** Google Gemini API (gemini-1.5-flash or later)
 - **Local:** Ollama + llama3.2:3b
 
 **Interface:**
@@ -90,7 +90,7 @@ class OllamaProvider(LLMProvider):
 **Provider Selection:** Per-message via query parameter (`?provider=cloud` or `?provider=local`); defaults to `cloud`
 
 **Error Handling:** If selected provider fails, return provider-specific error:
-- Claude: "Claude API error: [reason]" (rate limit, auth, timeout, etc.)
+- Gemini: "Gemini API error: [reason]" (rate limit, auth, timeout, etc.)
 - Ollama: "Ollama unreachable at localhost:11434" or "Ollama inference error: [reason]"
 - No fallback; user must manually retry with different provider
 
@@ -437,7 +437,7 @@ services:
 ### Environment Variables
 
 **Required:**
-- `CLAUDE_API_KEY` — Anthropic API key
+- `GEMINI_API_KEY` — Google Gemini API key
 - `DATABASE_URL` — Postgres connection string
 
 **Optional:**

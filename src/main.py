@@ -23,12 +23,12 @@ app.add_middleware(
 
 @app.get("/health")
 async def health_check():
-    """Check system health: database, Ollama, Claude API key."""
+    """Check system health: database, Ollama, Gemini API key."""
     health = {
         "status": "ok",
         "postgres": "unknown",
         "ollama": "unknown",
-        "claude_api_key": "configured" if settings.CLAUDE_API_KEY else "missing"
+        "gemini_api_key": "configured" if settings.GEMINI_API_KEY else "missing"
     }
 
     # Check Postgres
