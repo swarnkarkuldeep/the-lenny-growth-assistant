@@ -38,7 +38,7 @@ class GeminiProvider(LLMProvider):
         if not settings.GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY not configured")
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model_name = "gemini-1.5-flash"
+        self.model_name = "gemini-flash-latest"
         self.model = genai.GenerativeModel(self.model_name)
 
     def generate_qa_response(self, query: str, chunks: List[RetrievedChunk]) -> str:

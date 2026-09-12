@@ -67,7 +67,7 @@ class RetrievedChunk(BaseModel):
 **Purpose:** Unified interface for cloud and local LLM generation.
 
 **Providers:**
-- **Cloud:** Google Gemini API (gemini-1.5-flash or later)
+- **Cloud:** Google Gemini API (gemini-flash-latest)
 - **Local:** Ollama + llama3.2:3b
 
 **Interface:**
