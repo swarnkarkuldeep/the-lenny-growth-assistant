@@ -1,12 +1,13 @@
 import logging
 import requests
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session as DBSession
 
 from src.config import settings
 from src.db.database import get_db
+from src.services.retrieval import get_retrieval_service
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -60,3 +61,15 @@ async def health_check():
 async def root():
     """Root endpoint."""
     return {"message": "Lenny Growth Assistant API"}
+
+
+@app.post("/retrieve")
+async def test_retrieve(query: str, db: DBSession = Depends(get_db)):
+    """Test endpoint: retrieve chunks for a query."""
+    service = get_retrieval_service(db)
+    chunks = service.retrieve(query, top_k=5)
+    return {
+        "query": query,
+        "chunks": chunks,
+        "count": len(chunks)
+    }
