@@ -45,6 +45,24 @@ Conversation context:
 Write the essay now:"""
 
 
+SYSTEM_PROMPT_ARTIFACT = """You are an assistant that turns a chat conversation into a standalone, well-formatted document artifact.
+
+ARTIFACT REQUIREMENTS:
+1. Produce a {artifact_type} document that summarizes and organizes the useful, grounded content from the conversation below.
+2. Base every substantive claim on the retrieved transcript chunks provided as context. Do not invent facts.
+3. Include inline citations in the format: [Speaker, Episode, timestamp] for claims drawn from the chunks.
+4. Structure the document with clear headings and skimmable formatting (lists, bold emphasis where helpful).
+5. {format_instructions}
+
+Retrieved transcript chunks (for context):
+{context}
+
+Conversation so far:
+{conversation}
+
+Write the {artifact_type} artifact now:"""
+
+
 def format_context(chunks) -> str:
     """Format retrieved chunks as context string."""
     context_parts = []

@@ -7,6 +7,7 @@ import requests
 
 from src.config import settings
 from src.prompts import (
+    SYSTEM_PROMPT_ARTIFACT,
     SYSTEM_PROMPT_ESSAY,
     SYSTEM_PROMPT_QA,
     format_context,
@@ -29,6 +30,33 @@ class LLMProvider(ABC):
     def generate_essay(self, conversation_history, chunks: List[RetrievedChunk]) -> str:
         """Generate Ship 30/30 essay based on conversation and chunks."""
         pass
+
+    @abstractmethod
+    def generate_artifact(
+        self, conversation_history, chunks: List[RetrievedChunk], artifact_type: str
+    ) -> str:
+        """Generate a Markdown or HTML artifact based on conversation and chunks."""
+        pass
+
+
+def _build_artifact_prompt(conversation_history, chunks: List[RetrievedChunk], artifact_type: str) -> str:
+    context = format_context(chunks)
+    conversation = format_conversation(conversation_history)
+    format_instructions = (
+        "Return clean Markdown (headings, lists, bold/emphasis, links)."
+        if artifact_type == "markdown"
+        else (
+            "Return a single self-contained HTML snippet using only these tags: "
+            "h1, h2, h3, h4, h5, h6, p, ul, ol, li, strong, em, a, blockquote, code, pre. "
+            "Do not include <script>, <iframe>, event handler attributes, or a <style> block."
+        )
+    )
+    return SYSTEM_PROMPT_ARTIFACT.format(
+        artifact_type=artifact_type,
+        format_instructions=format_instructions,
+        context=context,
+        conversation=conversation,
+    )
 
 
 class GeminiProvider(LLMProvider):
@@ -65,6 +93,21 @@ class GeminiProvider(LLMProvider):
             response = self.model.generate_content(prompt)
             text = response.text
             logger.info(f"Gemini essay generated ({len(text)} chars)")
+            return text
+        except Exception as e:
+            logger.error(f"Gemini API error: {e}")
+            raise RuntimeError(f"Gemini API error: {e}") from e
+
+    def generate_artifact(
+        self, conversation_history, chunks: List[RetrievedChunk], artifact_type: str
+    ) -> str:
+        """Generate a Markdown or HTML artifact using Gemini."""
+        prompt = _build_artifact_prompt(conversation_history, chunks, artifact_type)
+
+        try:
+            response = self.model.generate_content(prompt)
+            text = response.text
+            logger.info(f"Gemini {artifact_type} artifact generated ({len(text)} chars)")
             return text
         except Exception as e:
             logger.error(f"Gemini API error: {e}")
@@ -125,6 +168,34 @@ class OllamaProvider(LLMProvider):
             response.raise_for_status()
             text = response.json()["response"]
             logger.info(f"Ollama essay generated ({len(text)} chars)")
+            return text
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Ollama unreachable: {e}")
+            raise RuntimeError(f"Ollama unreachable at {self.base_url}") from e
+        except Exception as e:
+            logger.error(f"Ollama error: {e}")
+            raise RuntimeError(f"Ollama inference error: {e}") from e
+
+    def generate_artifact(
+        self, conversation_history, chunks: List[RetrievedChunk], artifact_type: str
+    ) -> str:
+        """Generate a Markdown or HTML artifact using Ollama."""
+        prompt = _build_artifact_prompt(conversation_history, chunks, artifact_type)
+
+        try:
+            response = requests.post(
+                f"{self.base_url}/api/generate",
+                json={
+                    "model": self.model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "temperature": 0.7,
+                },
+                timeout=180,
+            )
+            response.raise_for_status()
+            text = response.json()["response"]
+            logger.info(f"Ollama {artifact_type} artifact generated ({len(text)} chars)")
             return text
         except requests.exceptions.ConnectionError as e:
             logger.error(f"Ollama unreachable: {e}")

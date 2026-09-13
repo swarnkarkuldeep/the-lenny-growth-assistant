@@ -1723,7 +1723,7 @@ git commit -m "feat: add session and chat API endpoints with orchestration"
 
 **Task Steps:**
 
-- [ ] **Step 1: Implement essay.py validation**
+- [x] **Step 1: Implement essay.py validation**
 
 Write `src/services/essay.py`:
 ```python
@@ -1801,7 +1801,7 @@ class EssayValidator:
         }
 ```
 
-- [ ] **Step 2: Implement essays.py router**
+- [x] **Step 2: Implement essays.py router**
 
 Write `src/routers/essays.py`:
 ```python
@@ -1890,7 +1890,7 @@ async def generate_essay(request: EssayRequest, db: DBSession = Depends(get_db))
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 ```
 
-- [ ] **Step 3: Implement artifacts.py router**
+- [x] **Step 3: Implement artifacts.py router**
 
 Write `src/routers/artifacts.py`:
 ```python
@@ -1941,7 +1941,7 @@ async def generate_artifact(session_id: UUID, artifact_type: str = "markdown", d
     return {"message": "Artifact generation endpoint (placeholder)"}
 ```
 
-- [ ] **Step 4: Add bleach to requirements.txt**
+- [x] **Step 4: Add bleach to requirements.txt**
 
 Update `requirements.txt`:
 ```
@@ -1949,7 +1949,7 @@ Update `requirements.txt`:
 bleach==6.1.0
 ```
 
-- [ ] **Step 5: Register essay and artifact routers**
+- [x] **Step 5: Register essay and artifact routers**
 
 Update `src/main.py`:
 ```python
@@ -1959,7 +1959,7 @@ app.include_router(essays.router)
 app.include_router(artifacts.router)
 ```
 
-- [ ] **Step 6: Write essay tests**
+- [x] **Step 6: Write essay tests**
 
 Write `tests/test_essay.py`:
 ```python
@@ -1999,7 +1999,7 @@ def test_essay_citations_validation():
     assert not EssayValidator.check_citations(without_citations)
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/services/essay.py src/routers/essays.py src/routers/artifacts.py tests/test_essay.py requirements.txt

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session as DBSession
 
 from src.config import settings
 from src.db.database import get_db
-from src.routers import chat, sessions
+from src.routers import artifacts, chat, essays, sessions
 from src.services.retrieval import get_retrieval_service
 
 logging.basicConfig(level=settings.LOG_LEVEL)
@@ -25,6 +25,8 @@ app.add_middleware(
 
 app.include_router(sessions.router)
 app.include_router(chat.router)
+app.include_router(essays.router)
+app.include_router(artifacts.router)
 
 @app.get("/health")
 async def health_check():
