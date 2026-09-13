@@ -21,10 +21,15 @@ htmlcov/
 node_modules/
 dist/
 
+# Knowledge base source data - cloned separately per README (not vendored,
+# it's a large external repo of 400+ episode transcripts)
+lennys-podcast-transcripts/
+
 # IDE
 .DS_Store
 .vscode/
 .idea/
+*:Zone.Identifier
 
 # Logs
 *.log

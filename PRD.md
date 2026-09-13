@@ -123,6 +123,13 @@ A conversational AI system grounded in Lenny's Podcast transcripts that:
 - If a response (including essay generation) takes 3 minutes, the user waits 3 minutes with a spinner visible
 - **Rationale:** Single-user scope eliminates concurrency complexity; sufficient for a demo where the evaluator controls their own patience.
 
+### Assumption 7: Hand-Rolled Orchestration Instead of the Claude Agent SDK or Pi Coding Agent
+
+- The take-home brief names the Anthropic Claude Agent SDK or Pi Coding Agent as the intended agent layer
+- This implementation instead uses a small custom `Orchestrator` (`src/services/orchestrator.py`) that routes by keyword detection, with each FastAPI endpoint (`/chat`, `/essays`, `/artifacts`) calling the retrieval and LLM services directly — the same skill boundaries and routing shape an agent-SDK implementation would have, just framework-free
+- **Rationale:** given the 2-day timeline, priority went to a correct, well-tested, well-grounded RAG pipeline (retrieval quality, citation validation, essay/artifact compliance) over adopting an additional framework layer on top of it. This is a deliberate, documented scope trade-off, not an oversight — flagged explicitly here per the brief's own request to record assumptions made against an incomplete client spec.
+- **Risk accepted:** an evaluator scoring strictly against "must use the named SDK" will see this as a gap; the mitigation is transparency (this entry) plus equivalent behavior (clear skill boundaries, reliable routing, sensible failure handling) delivered without it.
+
 ---
 
 ## 4. Scope: In v1

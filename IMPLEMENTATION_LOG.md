@@ -31,7 +31,7 @@ Ship 30/30 essay validator (word count, headings, takeaway, citations, claim tra
 - **Result:** 18/18 new automated tests passing at commit time; full suite 57 passed / 7 failed (the 7 were pre-existing, unrelated to this phase — see Phase 7 for the actual root cause).
 
 ### Phase 6: Frontend (`01b3da6`, merged to main in `a11cfa7`)
-React + Vite chat UI, provider switch, session sidebar, artifact viewer (Markdown via `react-markdown`, HTML via `DOMPurify` + `dangerouslySetInnerHTML`), vinyl/cassette visual design system (`DESIGN.md`).
+React + Vite chat UI, provider switch, session sidebar, artifact viewer (Markdown via `react-markdown`, HTML via `DOMPurify` + `dangerouslySetInnerHTML`), vinyl/cassette visual design system (documented in `docs/design.md`; the design tool's own root-level scaffolding files were removed from the repo in Phase 7 as redundant with it).
 - **Bugs found and fixed during manual QA:** a message-stream layout bug in `App.css`, a stale-error state in `ChatPane.jsx` that didn't clear on a new successful request, and a nested-interactive-element accessibility violation in `Sidebar.jsx` (a `<button>` inside a `<button>`).
 - **Bugs found and fixed post-merge:** citation timestamps weren't grounded correctly in `chat.py`, and `Sidebar.jsx` had a UTC/local timezone display bug.
 - **Known gap:** true mobile-viewport rendering couldn't be verified by the agent directly (no device/browser access in that session) — verified manually, see `docs/manual-test-plan.md`.
