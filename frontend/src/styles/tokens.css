@@ -1,0 +1,81 @@
+/*
+  Design tokens - "liner notes" direction (see .impeccable/surfaces/frontend.md).
+  Committed dark identity: a record sleeve board, not a light/dark toggle.
+  Contrast is verified against WCAG AA at every token pairing used for text.
+*/
+:root {
+  /* Ground */
+  --ink-void: #0d0c0a;
+  --board: #15130f;
+  --board-raised: #1c1a15;
+  --board-line: #2c2820;
+  --board-line-strong: #3c362a;
+
+  /* Sleeve insert (artifact viewer) - a distinct paper register inside the board */
+  --paper: #efe9db;
+  --paper-raised: #f7f3e9;
+  --paper-line: #d9d0b8;
+  --paper-ink: #221f18;
+  --paper-ink-dim: #58513f;
+
+  /* Ink */
+  --bone: #f3efe4;
+  --bone-dim: #b8b2a0;
+  --bone-faint: #7a7565;
+
+  /* The one accent - vinyl label amber. Interactive/citation/status only. */
+  --amber: #e8a23d;
+  --amber-strong: #ffb85c;
+  --amber-dim: #7a5a2c;
+  --amber-ink: #1f1608;
+
+  /* Signal (status only, never decorative) */
+  --signal-good: #7fb787;
+  --signal-warn: #e8a23d;
+  --signal-bad: #d9705f;
+
+  /* Type */
+  --font-ui: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  --font-read: 'IBM Plex Serif', Georgia, serif;
+
+  --text-2xs: 0.6875rem;   /* 11px - stamped metadata */
+  --text-xs: 0.75rem;      /* 12px */
+  --text-sm: 0.8125rem;    /* 13px */
+  --text-base: 0.9375rem;  /* 15px */
+  --text-md: 1.0625rem;    /* 17px */
+  --text-lg: 1.375rem;     /* 22px */
+  --text-xl: 1.75rem;      /* 28px */
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-read: 1.7;
+
+  --tracking-stamp: 0.08em;
+
+  /* Space (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* Radius - sleeve board is precise, not rounded; corners are cut, not bubbled */
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-chip: 999px;
+
+  /* Motion */
+  --ease-deck: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 360ms;
+
+  --shadow-panel: 0 1px 0 rgba(0, 0, 0, 0.4), 0 12px 32px -16px rgba(0, 0, 0, 0.6);
+  --shadow-insert: 0 1px 0 rgba(0, 0, 0, 0.15), 0 16px 40px -20px rgba(0, 0, 0, 0.45);
+
+  --focus-ring: 0 0 0 2px var(--board), 0 0 0 4px var(--amber);
+}

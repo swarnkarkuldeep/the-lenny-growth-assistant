@@ -1,0 +1,40 @@
+.citation-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border: 1px solid var(--amber-dim);
+  border-radius: var(--radius-chip);
+  background: color-mix(in srgb, var(--amber) 10%, transparent);
+  color: var(--amber-strong);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background var(--dur-fast) var(--ease-deck), border-color var(--dur-fast) var(--ease-deck);
+}
+
+a.citation-chip:hover,
+a.citation-chip:focus-visible {
+  background: color-mix(in srgb, var(--amber) 22%, transparent);
+  border-color: var(--amber);
+}
+
+.citation-chip__mark {
+  color: var(--amber-dim);
+  font-size: 0.6rem;
+}
+
+.citation-chip__speaker {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.citation-chip__time {
+  color: var(--amber-dim);
+}

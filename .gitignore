@@ -1,5 +1,8 @@
 task.md
 command.txt
+.claude/
+.impeccable/
+.remember/
 # Environment files
 .env
 .env.local

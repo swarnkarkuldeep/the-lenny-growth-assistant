@@ -1,5 +1,14 @@
 # Design: The Lenny Growth Assistant
 
+> **Direction:** The frontend (Phase 6) ships a committed visual identity chosen via the Impeccable design skill:
+> a "liner notes / tracklist" system. Sessions render as a **tracklist**, the chat is the **deck**, citations are
+> stamped **cue-point chips**, and the artifact viewer is a **sleeve insert** — a distinct paper-toned reading
+> surface beside the dark board. Full direction contract, the six candidate directions considered, and the
+> reasoning against six dealt reference-world challengers live in `.impeccable/surfaces/frontend.md`. The
+> sections below (Visual Design) describe what actually shipped; everything else in this document (information
+> architecture, interaction states, accessibility, responsive rules) still holds and was preserved through the
+> re-skin.
+
 ## Design Principles
 
 1. **Clarity over cleverness** — Users should always know what the system is doing and why. Transparent about sources, limitations, and failures.
@@ -125,44 +134,44 @@
 
 ## Visual Design
 
-### Color Scheme (Light & Dark Mode Support)
+As shipped in `frontend/src/styles/tokens.css`. This is a committed single identity (see note above), not a
+light/dark toggle: the board is deliberately dark, the sleeve insert is deliberately paper-toned, and every
+text/background pairing below was checked against WCAG AA (≥4.5:1 for body text).
 
-**Light Mode:**
-- Background: #FFFFFF
-- Text (primary): #1a1a1a
-- Text (secondary): #666666
-- Accent: #0066CC (Claude blue)
-- Error: #CC0000
-- Success: #00AA00
-- Citation link: #0066CC (underlined)
-- Message (user): #E8F4FF (light blue)
-- Message (assistant): #F5F5F5 (light gray)
+### Color System
 
-**Dark Mode:**
-- Background: #1a1a1a
-- Text (primary): #FFFFFF
-- Text (secondary): #CCCCCC
-- Accent: #66B3FF (lighter Claude blue)
-- Error: #FF6666
-- Success: #66FF66
-- Citation link: #66B3FF (underlined)
-- Message (user): #003D99 (dark blue)
-- Message (assistant): #333333 (dark gray)
+**The board** (header, tracklist, deck — `.shell`, `.sidebar`, `.deck`):
+- Ground: `#0d0c0a` (void) / `#15130f` (board) / `#1c1a15` (raised surfaces)
+- Ink: `#f3efe4` (bone, primary text) / `#b8b2a0` (dim) / `#7a7565` (faint/metadata)
+- Lines: `#2c2820` / `#3c362a`
+- **The one accent** — vinyl-label amber `#e8a23d` (`#ffb85c` hover/active) — used only for interactive
+  elements, citations, and the active session marker. Never decorative, never in paragraph text.
+- Signal colors (status only): good `#7fb787`, warn `#e8a23d`, bad `#d9705f`
+
+**The sleeve insert** (artifact viewer — a distinct paper register inside the dark board):
+- Ground: `#efe9db` (paper) / `#f7f3e9` (raised)
+- Ink: `#221f18` (primary) / `#58513f` (dim)
+- Rule: `#d9d0b8`
 
 ### Typography
 
-- **Font family:** System stack (SF Pro, -apple-system, Segoe UI, Roboto, sans-serif)
-- **Base size:** 16px (on desktop), 14px (mobile)
-- **Headings:** Bold, 20px (H2), 18px (H3)
-- **Code:** Monospace (Monaco, Courier New), 13px, light background
-- **Citations:** 14px, blue, underlined, cursor: pointer
+- **UI chrome** (nav, buttons, headers, message roles): IBM Plex Sans
+- **Metadata / ids / timestamps / citation chips**: IBM Plex Mono, uppercase, letter-spacing 0.08em for stamped
+  labels ("TRACKLIST", "SLEEVE INSERT")
+- **Essay / artifact reading copy** (inside the sleeve insert only): IBM Plex Serif, 17px, 1.7 line-height —
+  a deliberately different, slower register from the app chrome around it
+- **Type scale:** 11 / 12 / 13 / 15 / 17 / 22 / 28px (`--text-2xs` through `--text-xl`)
 
-### Spacing & Layout
+### Spacing & Components
 
-- **Padding:** 16px (desktop), 12px (mobile)
-- **Gap between messages:** 12px
-- **Chat pane max-width:** 100% (responsive)
-- **Artifact pane max-width:** none (scrollable, full height)
+- 4px base spacing scale (`--space-1` = 4px … `--space-8` = 64px)
+- Corners are precise, not bubbly: 3–5px radii on cards/inputs, full pill only for chips and the tab switcher
+- Provider selection is a two-position hardware-style switch (`ProviderSwitch`), not a `<select>` — reinforces
+  that Cloud/Local is a real, consequential toggle (per PRD Assumption 3), not an incidental preference
+- Every validation/health readout (essay compliance checks, health badge) renders as an honest state change on a
+  literal indicator (a dot, a check/× list) rather than a flat badge
+- Citations render as stamped `[Speaker · timestamp]` cue-point chips below a message, not as inline bare links
+- Deck max message width: 44rem · Sleeve insert reading column: 38rem, centered
 
 ---
 

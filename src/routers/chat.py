@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session as DBSession
 
 from src.db.database import get_db
 from src.db.models import Session as SessionModel, Message
-from src.schemas import QAResponse, Citation
+from src.schemas import QAResponse, Citation, RetrievedChunk
 from src.services.llm import get_llm_provider
 from src.services.retrieval import get_retrieval_service
 
@@ -31,20 +31,59 @@ class ChatResponseBody(BaseModel):
     created_at: str
 
 
-def extract_citations_from_response(response_text: str) -> list[Citation]:
-    """Extract [Speaker, Episode, timestamp] citations from response text."""
+def _find_matching_chunk(speaker: str, episode: str, chunks: list[RetrievedChunk]):
+    """Find the retrieved chunk this citation most likely refers to, by speaker
+    and episode (case-insensitive, substring-tolerant since the LLM may
+    paraphrase an episode title). Returns None if no confident match exists."""
+    speaker_norm = speaker.strip().lower()
+    episode_norm = episode.strip().lower()
+
+    def matches(chunk: RetrievedChunk) -> bool:
+        chunk_speaker = (chunk.speaker_name or "").strip().lower()
+        chunk_episode = (chunk.episode_title or "").strip().lower()
+        speaker_ok = speaker_norm == chunk_speaker or speaker_norm in chunk_speaker or chunk_speaker in speaker_norm
+        episode_ok = episode_norm == chunk_episode or episode_norm in chunk_episode or chunk_episode in episode_norm
+        return speaker_ok and episode_ok
+
+    candidates = [c for c in chunks if matches(c)]
+    if not candidates:
+        return None
+    # Chunks are already ordered by similarity DESC from retrieval.
+    return candidates[0]
+
+
+def extract_citations_from_response(response_text: str, chunks: list[RetrievedChunk] | None = None) -> list[Citation]:
+    """Extract [Speaker, Episode, timestamp] citations from response text.
+
+    The timestamp the LLM copies inline is frequently wrong or defaulted to
+    00:00:00 (small/local models especially tend to fall back to the first
+    speaker turn's timestamp rather than the one for the quoted content). If
+    the citation's speaker + episode match one of the retrieved chunks that
+    actually grounded the answer, prefer that chunk's real timestamp instead
+    of trusting the LLM's copy verbatim -- grounding is the product, so the
+    displayed cue point must trace back to real retrieved evidence.
+    """
     citations = []
     seen = set()
+    chunks = chunks or []
     for speaker, episode, timestamp in CITATION_PATTERN.findall(response_text):
-        key = (speaker.strip(), episode.strip(), timestamp.strip())
+        speaker = speaker.strip()
+        episode = episode.strip()
+        timestamp = timestamp.strip()
+
+        matched_chunk = _find_matching_chunk(speaker, episode, chunks)
+        if matched_chunk is not None:
+            timestamp = matched_chunk.timestamp
+
+        key = (speaker, episode, timestamp)
         if key not in seen:
             citations.append(
                 Citation(
-                    episode=episode.strip(),
+                    episode=episode,
                     guest="Unknown",
-                    speaker=speaker.strip(),
-                    timestamp=timestamp.strip(),
-                    video_url=None,
+                    speaker=speaker,
+                    timestamp=timestamp,
+                    video_url=matched_chunk.video_url if matched_chunk else None,
                 )
             )
             seen.add(key)
@@ -106,7 +145,7 @@ async def chat(request: ChatRequest, db: DBSession = Depends(get_db)):
             logger.error(f"Provider error: {e}")
             raise HTTPException(status_code=503, detail=str(e)) from e
 
-        citations = extract_citations_from_response(response_text)
+        citations = extract_citations_from_response(response_text, chunks)
         validation_passed = validate_response_citations(response_text)
 
         qa_response = QAResponse(
