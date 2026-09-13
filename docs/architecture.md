@@ -307,14 +307,13 @@ CREATE TABLE artifacts (
 ### Chat
 
 **POST /chat**
-- Submit a message and get a response
+- Submit a message; retrieves grounding context, generates a response, persists both turns
 - Request:
   ```json
   {
     "session_id": "UUID",
     "message": "What is product-market fit?",
-    "provider": "cloud",  // optional, defaults to "cloud"
-    "skill": "answer"  // optional: "answer", "essay", "artifact"; defaults to auto-detect
+    "provider": "cloud"  // "cloud" (Gemini) or "local" (Ollama); no default fallback between them
   }
   ```
 - Response:
@@ -322,31 +321,47 @@ CREATE TABLE artifacts (
   {
     "message_id": "UUID",
     "response": {
-      "text": "...",
+      "response_text": "...",
       "provider": "cloud",
+      "retrieved_chunks": [ /* RetrievedChunk objects used as grounding context */ ],
       "citations": [
-        {
-          "episode": "Brian Chesky: ...",
-          "guest": "Brian Chesky",
-          "speaker": "Brian Chesky",
-          "timestamp": "00:12:34",
-          "video_url": "https://..."
-        }
+        { "episode": "...", "guest": "...", "speaker": "...", "timestamp": "00:12:34", "video_url": "https://..." }
       ],
-      "validation": { "passed": true, "reason": "citations present" }
+      "validation_passed": true
     },
     "created_at": "ISO8601"
   }
   ```
+  `validation_passed` is the source-attribution check (`validate_response_citations` in `src/routers/chat.py`): true if the response contains an inline citation or an explicit admission it can't answer, false otherwise. See "Known Limitations" in `IMPLEMENTATION_LOG.md` for how that check handles the local model's phrasing variance.
 
-**Error Response:**
-```json
-{
-  "error": "claude_api_error",
-  "message": "Claude API rate limited. Try again in 30 seconds.",
-  "provider": "cloud"
-}
-```
+- Errors: standard FastAPI `{"detail": "..."}` bodies — `404` unknown session, `422` invalid provider, `503` provider unreachable (Ollama down, Gemini API error).
+
+### Essays
+
+**POST /essays**
+- Generate a Ship 30/30-style essay from the session's conversation history, validate it, and persist it as a markdown artifact
+- Request:
+  ```json
+  { "session_id": "UUID", "provider": "cloud" }
+  ```
+- Response:
+  ```json
+  {
+    "essay_text": "...",
+    "provider": "cloud",
+    "artifact_id": "UUID",
+    "validation": {
+      "word_count_ok": true,
+      "has_headings": true,
+      "has_takeaway": true,
+      "has_citations": true,
+      "all_claims_traceable": true,
+      "compliance_passed": true,
+      "word_count": 1240
+    }
+  }
+  ```
+- Errors: `404` unknown session, `422` invalid provider, `400` no conversation history to ground the essay in, `503` provider unreachable.
 
 ### Artifacts
 
@@ -381,7 +396,7 @@ CREATE TABLE artifacts (
     "status": "ok",
     "postgres": "connected",
     "ollama": "connected",
-    "claude_api_key": "configured"
+    "gemini_api_key": "configured"
   }
   ```
 
@@ -394,14 +409,15 @@ CREATE TABLE artifacts (
 ```yaml
 services:
   postgres:
-    image: postgres:15
+    image: pgvector/pgvector:pg16   # ships the pgvector extension needed for semantic search
     environment:
       POSTGRES_DB: lenny_assistant
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./src/db/migrations:/docker-entrypoint-initdb.d
     ports:
-      - "5432:5432"
+      - "5433:5432"   # host port 5433, not 5432 - avoids colliding with a native Postgres install
 
   ollama:
     image: ollama/ollama:latest
@@ -415,9 +431,9 @@ services:
   fastapi:
     build: .
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/lenny_assistant
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/lenny_assistant  # internal Docker network, unaffected by the host port remap above
       OLLAMA_BASE_URL: http://ollama:11434
-      CLAUDE_API_KEY: ${CLAUDE_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
     depends_on:
       - postgres
       - ollama
@@ -426,19 +442,19 @@ services:
 
   frontend:
     build: ./frontend
-    environment:
-      VITE_API_URL: http://localhost:8000
     depends_on:
       - fastapi
     ports:
-      - "5173:5173"
+      - "5173:80"   # nginx inside the built frontend image serves on 80
 ```
 
 ### Environment Variables
 
-**Required:**
-- `GEMINI_API_KEY` — Google Gemini API key
-- `DATABASE_URL` — Postgres connection string
+**Optional (Cloud provider only):**
+- `GEMINI_API_KEY` — Google Gemini API key; leave unset to run Local (Ollama) only
+
+**Has a working default, override for your setup:**
+- `DATABASE_URL` — Postgres connection string (defaults to the host-mapped port; see the port note above)
 
 **Optional:**
 - `OLLAMA_BASE_URL` — Ollama endpoint (default: http://localhost:11434)

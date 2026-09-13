@@ -16,7 +16,31 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
 
 CITATION_PATTERN = re.compile(r"\[(.*?),\s*(.*?),\s*(\d{2}:\d{2}:\d{2})\]")
-NO_SUPPORT_PHRASES = ("don't have information", "not in the knowledge base")
+# The system prompt (src/prompts.py) tells the model to use the exact phrase
+# "I don't have information on this topic in the knowledge base", and Gemini
+# reliably does. The local Ollama model (llama3.2:3b) is smaller and follows
+# instructions more loosely, paraphrasing the same admission in ways that
+# shift word-for-word ("don't have information" vs "don't have any
+# information", "unrelated to the topic" vs "nonsensical query"). These are
+# regex fragments (not exact phrases) to absorb small determiner/word
+# insertions without turning into a full semantic classifier.
+NO_SUPPORT_PATTERNS = tuple(
+    re.compile(p, re.IGNORECASE)
+    for p in (
+        r"don'?t have (?:any )?information",
+        r"not in the knowledge base",
+        r"don'?t see any relevant",
+        r"no relevant information",
+        r"not relevant to",
+        r"unrelated to (?:the|this) topic",
+        r"does(?:n'?t| not) (?:contain|have) (?:any )?information",
+        r"cannot answer this",
+        r"unable to answer",
+        r"couldn'?t find (?:any )?(?:relevant )?information",
+        r"could not find (?:any )?(?:relevant )?information",
+        r"no(?:t)? (?:able to find|matching) (?:any )?information",
+    )
+)
 
 
 class ChatRequest(BaseModel):
@@ -90,11 +114,28 @@ def extract_citations_from_response(response_text: str, chunks: list[RetrievedCh
     return citations
 
 
-def validate_response_citations(response_text: str) -> bool:
-    """A response is compliant if it cites a source or explicitly says it can't answer."""
+TIMESTAMP_PATTERN = re.compile(r"\d{2}:\d{2}:\d{2}")
+
+
+def validate_response_citations(response_text: str, chunks: list = None) -> bool:
+    """A response is compliant if it cites a source or explicitly says it can't answer.
+
+    The system prompt asks for bracket citations `[Speaker, Episode, timestamp]`,
+    which Gemini follows reliably. The local Ollama model (llama3.2:3b) often
+    *does* ground its answer in a real retrieved chunk but writes the citation
+    in prose/parenthetical style instead, e.g. `(Grenier, "Episode Title",
+    timestamp: 00:00:00)`. Rather than chase every possible citation-format
+    variant with more regexes, treat a response as grounded if it names a
+    speaker from the chunks that actually backed the answer *and* includes a
+    timestamp anywhere in the text - that combination can't happen by
+    accident, only by referencing real retrieved evidence.
+    """
     has_citations = "[" in response_text and "]" in response_text
-    has_no_support = any(phrase in response_text.lower() for phrase in NO_SUPPORT_PHRASES)
-    return has_citations or has_no_support
+    has_no_support = any(pattern.search(response_text) for pattern in NO_SUPPORT_PATTERNS)
+    has_prose_citation = bool(chunks) and bool(TIMESTAMP_PATTERN.search(response_text)) and any(
+        chunk.speaker_name and chunk.speaker_name in response_text for chunk in chunks
+    )
+    return bool(has_citations or has_no_support or has_prose_citation)
 
 
 @router.post("", response_model=ChatResponseBody)
@@ -146,7 +187,7 @@ async def chat(request: ChatRequest, db: DBSession = Depends(get_db)):
             raise HTTPException(status_code=503, detail=str(e)) from e
 
         citations = extract_citations_from_response(response_text, chunks)
-        validation_passed = validate_response_citations(response_text)
+        validation_passed = validate_response_citations(response_text, chunks)
 
         qa_response = QAResponse(
             response_text=response_text,

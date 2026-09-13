@@ -27,7 +27,12 @@ def test_gemini_qa_response():
     )
 
     provider = get_llm_provider("cloud")
-    response = provider.generate_qa_response("What is product strategy?", [retrieved_chunk])
+    try:
+        response = provider.generate_qa_response("What is product strategy?", [retrieved_chunk])
+    except RuntimeError as e:
+        if "RESOURCE_EXHAUSTED" in str(e) or "429" in str(e):
+            pytest.skip(f"Gemini free-tier daily quota exhausted, not a code defect: {e}")
+        raise
 
     assert response
     assert len(response) > 10
