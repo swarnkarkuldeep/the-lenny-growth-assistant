@@ -367,7 +367,7 @@ LICENSE                    MIT
 
 ## Demo Video
 
-2–3 minute walkthrough covering the problem, the product, a live Local (Ollama) demo, and one technical trade-off: **[add YouTube link here before submission]**
+2–3 minute walkthrough covering the problem, the product, a live Local (Ollama) demo, and one technical trade-off: (https://youtu.be/NgcW0OCvVjM)
 
 ---
 
